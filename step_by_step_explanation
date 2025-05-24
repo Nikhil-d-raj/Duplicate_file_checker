@@ -1,0 +1,76 @@
+1. Set Directory
+
+dir="${1:-.}"
+Accepts directory path as the first argument.
+
+Defaults to current directory (.) if no argument is given.
+
+2. Message to User
+
+echo "Looking for near-duplicate files in '$dir'..."
+Prints a status message to indicate what directory is being scanned.
+
+3. Main File Loop
+
+find "$dir" -type f -print0 | while IFS= read -r -d '' file; do
+Uses find to locate all files recursively in the given directory.
+
+-print0 handles filenames with spaces/newlines by separating files with a null character (\0).
+
+while IFS= read -r -d '' reads each file path safely, preserving spaces/special characters.
+
+4. Extract File Size and Name
+
+size=$(stat -c %s "$file")
+base=$(basename "$file")
+name="${base%.*}"
+stat -c %s "$file" gets the file size in bytes.
+
+basename "$file" extracts the filename (e.g., data.txt).
+
+name="${base%.*}" removes the extension, leaving just the base name (e.g., data).
+
+5. Check If Already Seen
+
+grep -q "|$size|$name|" /tmp/seen_files.txt 2>/dev/null && continue
+Checks if the combination of size and name was already processed.
+
+Uses a pattern like |1024|logfile| to avoid partial matches.
+
+If found, it skips to the next file using continue.
+
+6. Find Other Matching Files
+
+find "$dir" -type f -size "${size}c" -print0 | while IFS= read -r -d '' other; do
+Finds all other files with the exact same size.
+
+Loops through them with null-safe while again.
+
+7. Skip Comparing to Itself
+
+[ "$file" = "$other" ] && continue
+Skips comparison if both paths point to the same file.
+
+8. Compare Names (Without Extension)
+
+other_base=$(basename "$other")
+other_name="${other_base%.*}"
+
+if [ "$name" = "$other_name" ]; then
+    echo "Duplicate: $file <-> $other"
+fi
+Extracts the base name of the other file.
+
+Compares stripped names (file.txt vs file.csv → both become file).
+
+If both size and name match → prints a possible duplicate.
+
+9. Mark File as Seen
+
+echo "|$size|$name|" >> /tmp/seen_files.txt
+Records the current file’s size and name pattern so we don’t reprocess it later.
+
+10. Cleanup Temporary File
+
+rm -f /tmp/seen_files.txt
+Deletes the temporary marker file after the script finishes.
