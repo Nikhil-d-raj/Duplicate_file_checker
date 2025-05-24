@@ -1,0 +1,6 @@
+❌ Repeated I/O	find and stat run many times redundantly, very inefficient.
+❌ Nested Loops	For N files, time consuming.
+❌ No hashing	Files with same name and size but content might not match.
+❌ Break too early	A single match triggers a break, missing other duplicate files.
+❌ Doesn't handle symbolic links	May follow symlinks or treat them differently.
+❌ Can crash on filenames with newlines	Slightly handled by -print0, but not robust in older bash.
