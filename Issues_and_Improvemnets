@@ -1,0 +1,10 @@
+Limitations/Potential Issues
+
+Does not check file content. False positives are possible if different files have the same name/size.
+Temp file is stored in /tmp/seen_files.txt and may clash in multi-user environments.
+
+Future Improvements
+
+Add file content comparison using sha256sum or md5sum
+Handle symlinks or hidden files optionally
+Store logs/output in a separate file
